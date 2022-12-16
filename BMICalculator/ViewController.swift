@@ -5,18 +5,116 @@
 //  Created by Amrik on 13/12/22.
 //  StudentID : 301296257
 //  BMI Calculator App
-// Version: 1.0
+//  Version: 1.0
 //
 
 import UIKit
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UITextFieldDelegate {
 
+    @IBOutlet weak var isMetricSwitch: UISwitch!
+    @IBOutlet weak var txtHeight: UITextField!
+    @IBOutlet weak var txtWeight: UITextField!
+    @IBOutlet weak var txtGender: UITextField!
+    @IBOutlet weak var txtAge: UITextField!
+    @IBOutlet weak var txtName: UITextField!
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+      
+        txtHeight.delegate = self
+        txtWeight.delegate = self
+        
     }
+    //MARK: UITextFieldDelegate
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        //If return is pressed on the height field, proceed to the weight field
+        if(textField === txtHeight) {
+            textField.resignFirstResponder()
+            txtWeight.becomeFirstResponder()
+        }
+        //If return is pressed on the weight field, calculate.
+        else if(textField === txtWeight) {
+            if let height = txtHeight.text, let weight = txtWeight.text {
+                if !(height.isEmpty), !(weight.isEmpty) {
+                    btnCalculateBMIAct(UIButton())
+                }
+            }
+            textField.resignFirstResponder()
+        }
+        else { textField.resignFirstResponder() }
+        return true
+    }
+    
+    
+    @IBAction func metricConverterSwitch(_ sender: UISwitch) {
+        if sender.isOn {
+            //If text is already there, convert it to metric
+            if txtHeight.text != nil && !((txtHeight.text!).isEmpty) {
+                if let heightVal = Double(txtHeight.text!) {
+                    txtHeight.text = String(format: "%.2f", heightVal * 0.0254)
+                }
+            }
+            if txtWeight.text != nil && !((txtWeight.text!).isEmpty) {
+                if let weightVal = Double(txtWeight.text!) {
+                    txtWeight.text = String(format: "%.2f", weightVal * 0.453592)
+                }
+            }
+             if txtHeight.text != nil && !((txtHeight.text!).isEmpty) && txtWeight.text != nil && !((txtWeight.text!).isEmpty) {
+                btnCalculateBMIAct(UIButton())
+            }
+            txtHeight.placeholder = "Height(m)"
+            txtWeight.placeholder = "Weight(kg)"
+        }
+        else {
+            //If text is already there, convert it to imperial
+            if txtHeight.text != nil && !((txtHeight.text!).isEmpty) {
+                if let heightVal = Double(txtHeight.text!) {
+                    txtHeight.text = String(format: "%.2f", heightVal / 0.0254)
+                }
+            }
+            if txtWeight.text != nil && !((txtWeight.text!).isEmpty) {
+                if let weightVal = Double(txtWeight.text!) {
+                    txtWeight.text = String(format: "%.2f", weightVal / 0.453592)
+                }
+            }
+            if txtHeight.text != nil && !((txtHeight.text!).isEmpty) && txtWeight.text != nil && !((txtWeight.text!).isEmpty) {
+                btnCalculateBMIAct(UIButton())
+            }
+            txtHeight.placeholder = "Height(in)"
+            txtWeight.placeholder = "Weight(lbs)"
+        }
 
-
+    }
+    
+    
+    @IBAction func btnCalculateBMIAct(_ sender: UIButton) {
+        if txtWeight.text != nil && txtHeight.text != nil, var weight = Double(txtWeight.text!), var height = Double(txtHeight.text!) {
+            self.view.endEditing(true)
+            //Calculating BMI using metric, so convert to metric first
+            if !isMetricSwitch.isOn {
+                (weight) *= 0.453592;
+                (height) *= 0.0254;
+            }
+            let BMI: Double = weight / (height * height)
+            let shortBMI = String(format: "%.2f", BMI)
+            var resultText = "Your BMI is \(shortBMI): "
+            var descriptor : String?
+            if(BMI < 16.0) { descriptor = "Severely Thin" }
+            else if(BMI < 16.99) { descriptor = "Moderately Thin" }
+            else if(BMI < 18.49) { descriptor = "Slightly Thin" }
+            else if(BMI < 24.99) { descriptor = "Normal" }
+            else if(BMI < 29.99) { descriptor = "Overweight" }
+            else if(BMI < 34.99) { descriptor = "Moderately Obese" }
+            else if(BMI < 39.99) { descriptor = "Severely Obese" }
+            else { descriptor = "Very Severely Obese" }
+            resultText += descriptor!
+            print(resultText)
+            displayAlertWithCompletion(title: "BMICalculator!", message: resultText, control: ["Okay"]) { str in }
+        }
+        else {
+            displayAlertWithCompletion(title: "BMICalculator!", message: "Please fill out your height and weight.", control: ["Okay"]) { str in }
+        }
+    }
+    
 }
 
