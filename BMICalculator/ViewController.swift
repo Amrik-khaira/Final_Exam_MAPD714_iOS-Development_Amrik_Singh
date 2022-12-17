@@ -10,41 +10,110 @@
 
 import UIKit
 
-class ViewController: UIViewController, UITextFieldDelegate {
+class ViewController: UIViewController, UITextFieldDelegate,UIPickerViewDelegate,UIPickerViewDataSource {
+   
+    
 
+    @IBOutlet weak var btnCalculate: UIButton!
     @IBOutlet weak var isMetricSwitch: UISwitch!
     @IBOutlet weak var txtHeight: UITextField!
     @IBOutlet weak var txtWeight: UITextField!
     @IBOutlet weak var txtGender: UITextField!
     @IBOutlet weak var txtAge: UITextField!
     @IBOutlet weak var txtName: UITextField!
+    var pickerView = UIPickerView()
+    let gender = ["Male", "Female"]
+    var updateBmiArr = [BMIRecords]()
+    var isUpdate = Bool()
+    var indexval = IndexPath()
     override func viewDidLoad() {
         super.viewDidLoad()
-      
         txtHeight.delegate = self
         txtWeight.delegate = self
-        
-    }
-    //MARK: UITextFieldDelegate
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        //If return is pressed on the height field, proceed to the weight field
-        if(textField === txtHeight) {
-            textField.resignFirstResponder()
-            txtWeight.becomeFirstResponder()
-        }
-        //If return is pressed on the weight field, calculate.
-        else if(textField === txtWeight) {
-            if let height = txtHeight.text, let weight = txtWeight.text {
-                if !(height.isEmpty), !(weight.isEmpty) {
-                    btnCalculateBMIAct(UIButton())
-                }
-            }
-            textField.resignFirstResponder()
-        }
-        else { textField.resignFirstResponder() }
-        return true
+        self.pickUp(txtGender)
     }
     
+    func pickUp(_ textField : UITextField){
+           // UIPickerView
+           self.pickerView = UIPickerView(frame:CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: 216))
+           self.pickerView.delegate = self
+           self.pickerView.dataSource = self
+           self.pickerView.backgroundColor = UIColor.white
+           textField.inputView = self.pickerView
+           // ToolBar
+           let toolBar = UIToolbar()
+           toolBar.barStyle = .default
+           toolBar.isTranslucent = true
+           toolBar.tintColor = UIColor(red: 92/255, green: 216/255, blue: 255/255, alpha: 1)
+           toolBar.sizeToFit()
+           // Adding Button ToolBar
+           let spaceButton = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+           let cancelButton = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(ViewController.cancelClick))
+           toolBar.setItems([spaceButton,spaceButton,cancelButton], animated: false)
+           toolBar.isUserInteractionEnabled = true
+           textField.inputAccessoryView = toolBar
+           
+        
+        
+        // ToolBar
+        let toolBarText = UIToolbar()
+        toolBarText.barStyle = .default
+        toolBarText.isTranslucent = true
+        toolBarText.tintColor = UIColor(red: 92/255, green: 216/255, blue: 255/255, alpha: 1)
+        toolBarText.sizeToFit()
+        
+        
+        let doneButton = UIBarButtonItem(title: "Done", style: .plain, target: self, action: #selector(ViewController.doneClick))
+        toolBarText.setItems([spaceButton,spaceButton,doneButton], animated: false)
+        toolBarText.isUserInteractionEnabled = true
+        txtHeight.inputAccessoryView = toolBarText
+        txtWeight.inputAccessoryView = toolBarText
+        txtAge.inputAccessoryView = toolBarText
+        txtName.inputAccessoryView = toolBarText
+       }
+       
+    @objc func doneClick() {
+        self.view.endEditing(true)
+       }
+    
+    
+       @objc func cancelClick() {
+           txtGender.resignFirstResponder()
+       }
+    
+    
+    
+    //MARK: UIPickerView Delegate & DataSource
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+        return gender[row]
+    }
+    
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 1
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        return gender.count
+    }
+    
+    func pickerView(_ pickerView:UIPickerView,didSelectRow row: Int,inComponent component: Int){
+        txtGender.text = gender[row]
+        txtGender.resignFirstResponder()
+    }
+    
+    @IBAction func btnBmiTrackingACt(_ sender: Any) {
+        openBMITrackingScreen()
+    }
+    @IBAction func resetNewBMIAct(_ sender: Any) {
+        self.isUpdate = false
+        isMetricSwitch.setOn(false, animated: false)
+        txtHeight.text = ""
+        txtWeight.text = ""
+        txtGender.text = ""
+        txtAge.text = ""
+        txtName.text =  ""
+        btnCalculate.setTitle("Calculate BMI", for: .normal)
+    }
     
     @IBAction func metricConverterSwitch(_ sender: UISwitch) {
         if sender.isOn {
@@ -83,14 +152,19 @@ class ViewController: UIViewController, UITextFieldDelegate {
             txtHeight.placeholder = "Height(in)"
             txtWeight.placeholder = "Weight(lbs)"
         }
-
     }
     
-    
     @IBAction func btnCalculateBMIAct(_ sender: UIButton) {
-        if txtWeight.text != nil && txtHeight.text != nil, var weight = Double(txtWeight.text!), var height = Double(txtHeight.text!) {
+       
+        if txtName.text == "" {
+            displayAlertWithCompletion(title: "BMICalculator!", message: "Please enter your name.", control: ["Okay"]) { _ in }
+        } else if txtAge.text == "" {
+            displayAlertWithCompletion(title: "BMICalculator!", message: "Please enter your age.", control: ["Okay"]) { _ in }
+        } else if txtGender.text == "" {
+            displayAlertWithCompletion(title: "BMICalculator!", message: "Please choose your gender.", control: ["Okay"]) { _ in }
+        } else if txtWeight.text != nil && txtHeight.text != nil, var weight = Double(txtWeight.text!), var height = Double(txtHeight.text!) {
             self.view.endEditing(true)
-            //Calculating BMI using metric, so convert to metric first
+            // MARK: Calculating BMI using metric, so convert to metric first
             if !isMetricSwitch.isOn {
                 (weight) *= 0.453592;
                 (height) *= 0.0254;
@@ -98,7 +172,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             let BMI: Double = weight / (height * height)
             let shortBMI = String(format: "%.2f", BMI)
             var resultText = "Your BMI is \(shortBMI): "
-            var descriptor : String?
+            var descriptor = ""
             if(BMI < 16.0) { descriptor = "Severely Thin" }
             else if(BMI < 16.99) { descriptor = "Moderately Thin" }
             else if(BMI < 18.49) { descriptor = "Slightly Thin" }
@@ -107,14 +181,56 @@ class ViewController: UIViewController, UITextFieldDelegate {
             else if(BMI < 34.99) { descriptor = "Moderately Obese" }
             else if(BMI < 39.99) { descriptor = "Severely Obese" }
             else { descriptor = "Very Severely Obese" }
-            resultText += descriptor!
+            resultText += descriptor
             print(resultText)
-            displayAlertWithCompletion(title: "BMICalculator!", message: resultText, control: ["Okay"]) { str in }
-        }
-        else {
-            displayAlertWithCompletion(title: "BMICalculator!", message: "Please fill out your height and weight.", control: ["Okay"]) { str in }
+            displayAlertWithCompletion(title: "BMICalculator!", message: resultText, control: ["Okay"]) { str in
+                self.saveData(shortBMI: shortBMI,descriptor: descriptor)
+                self.openBMITrackingScreen()
+            }
+        } else {
+            displayAlertWithCompletion(title: "BMICalculator!", message: "Please fill out your height and weight.", control: ["Okay"]) { _ in }
         }
     }
     
+    func saveData(shortBMI:String,descriptor:String) {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MM/dd/yyyy"
+        let currentDate =  dateFormatter.string(from: Date())
+        if self.isUpdate {
+            self.updateBmiArr[indexval.row] = BMIRecords.init(name: txtName.text ?? "", bmiScore: shortBMI, age: txtAge.text ?? "", height: txtHeight.text ?? "", gender: txtGender.text ?? "", isMatric: isMetricSwitch.isOn, strDate: currentDate, weight: txtWeight.text ?? "", descriptor: descriptor)
+            LocalStorage.shared.saveDataInPersistent(BMIArr: self.updateBmiArr)
+        } else {
+            var tempBmiArr = LocalStorage.shared.GetSavedItems()
+            tempBmiArr.append(BMIRecords.init(name: txtName.text ?? "", bmiScore: shortBMI, age: txtAge.text ?? "", height: txtHeight.text ?? "", gender: txtGender.text ?? "", isMatric: isMetricSwitch.isOn, strDate: currentDate, weight: txtWeight.text ?? "", descriptor: descriptor))
+            LocalStorage.shared.saveDataInPersistent(BMIArr: tempBmiArr)
+        }
+    }
+    
+    
+    //MARK: - open Edit Todo List
+    func openBMITrackingScreen()  {
+        if let vc = UIStoryboard.init(name: "Main", bundle: Bundle.main).instantiateViewController(withIdentifier: "BmiListVC") as? BmiListVC
+         {
+            vc.callbackforUpdateRecord = {
+                (tempArr,bmiDict,indexval,isUpdate) in
+                guard let tempDict = bmiDict else { return  }
+                self.updateBmiArr = tempArr
+                self.isUpdate = isUpdate
+                self.indexval = indexval
+                self.setUpUI(updateBmiDict:tempDict)
+            }
+            self.navigationController?.pushViewController(vc, animated: true)
+           }
+    }
+    
+    func setUpUI(updateBmiDict:BMIRecords) {
+        isMetricSwitch.setOn(updateBmiDict.isMatric ?? false, animated: false)
+        txtHeight.text = updateBmiDict.height ?? ""
+        txtWeight.text = updateBmiDict.weight ?? ""
+        txtGender.text = updateBmiDict.gender ?? ""
+        txtAge.text = updateBmiDict.age ?? ""
+        txtName.text = updateBmiDict.name ?? ""
+        btnCalculate.setTitle("Re-Calculate BMI", for: .normal)
+    }
 }
 
