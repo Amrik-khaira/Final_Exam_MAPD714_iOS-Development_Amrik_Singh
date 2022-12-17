@@ -8,12 +8,10 @@
 //  Version: 1.0
 //
 
-
 import Foundation
 import UIKit
 
 class LocalStorage {
-    
     //MARK: - shared instance for Local Storage class
     static let shared = LocalStorage()
     
@@ -25,14 +23,13 @@ class LocalStorage {
     //MARK: - Get Saved Items
     func GetSavedItems() -> [BMIRecords] {
         if let data = UserDefaults.standard.value(forKey:"BMIRecords") as? Data {
-         do
-         {
-             return try PropertyListDecoder().decode(Array<BMIRecords>.self, from: data)
-         } catch {
-            return [BMIRecords]()
-         }
-        }
-        else {
+            do
+            {
+                return try PropertyListDecoder().decode(Array<BMIRecords>.self, from: data)
+            } catch {
+                return [BMIRecords]()
+            }
+        } else {
             return [BMIRecords]()
         }
     }

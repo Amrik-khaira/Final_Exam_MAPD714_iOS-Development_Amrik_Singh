@@ -5,15 +5,13 @@
 //  Created by Amrik on 13/12/22.
 //  StudentID : 301296257
 //  BMI Calculator App
-//  Version: 1.0
+//  Version: 1.1
 //
 
 import UIKit
 
 class ViewController: UIViewController, UITextFieldDelegate,UIPickerViewDelegate,UIPickerViewDataSource {
-   
-    
-
+    //MARK: IBOutlet Connections
     @IBOutlet weak var btnCalculate: UIButton!
     @IBOutlet weak var isMetricSwitch: UISwitch!
     @IBOutlet weak var txtHeight: UITextField!
@@ -21,11 +19,13 @@ class ViewController: UIViewController, UITextFieldDelegate,UIPickerViewDelegate
     @IBOutlet weak var txtGender: UITextField!
     @IBOutlet weak var txtAge: UITextField!
     @IBOutlet weak var txtName: UITextField!
+    //MARK: Variables
     var pickerView = UIPickerView()
     let gender = ["Male", "Female"]
     var updateBmiArr = [BMIRecords]()
     var isUpdate = Bool()
     var indexval = IndexPath()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         txtHeight.delegate = self
@@ -33,36 +33,31 @@ class ViewController: UIViewController, UITextFieldDelegate,UIPickerViewDelegate
         self.pickUp(txtGender)
     }
     
-    func pickUp(_ textField : UITextField){
-           // UIPickerView
-           self.pickerView = UIPickerView(frame:CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: 216))
-           self.pickerView.delegate = self
-           self.pickerView.dataSource = self
-           self.pickerView.backgroundColor = UIColor.white
-           textField.inputView = self.pickerView
-           // ToolBar
-           let toolBar = UIToolbar()
-           toolBar.barStyle = .default
-           toolBar.isTranslucent = true
-           toolBar.tintColor = UIColor(red: 92/255, green: 216/255, blue: 255/255, alpha: 1)
-           toolBar.sizeToFit()
-           // Adding Button ToolBar
-           let spaceButton = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-           let cancelButton = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(ViewController.cancelClick))
-           toolBar.setItems([spaceButton,spaceButton,cancelButton], animated: false)
-           toolBar.isUserInteractionEnabled = true
-           textField.inputAccessoryView = toolBar
-           
-        
-        
+    //MARK: UIPickerView for gender
+    func pickUp(_ textField : UITextField) {
+        self.pickerView = UIPickerView(frame:CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: 216))
+        self.pickerView.delegate = self
+        self.pickerView.dataSource = self
+        self.pickerView.backgroundColor = UIColor.white
+        textField.inputView = self.pickerView
         // ToolBar
+        let toolBar = UIToolbar()
+        toolBar.barStyle = .default
+        toolBar.isTranslucent = true
+        toolBar.tintColor = UIColor(red: 92/255, green: 216/255, blue: 255/255, alpha: 1)
+        toolBar.sizeToFit()
+        // Adding Button ToolBar
+        let spaceButton = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        let cancelButton = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(ViewController.cancelClick))
+        toolBar.setItems([spaceButton,spaceButton,cancelButton], animated: false)
+        toolBar.isUserInteractionEnabled = true
+        textField.inputAccessoryView = toolBar
+        // ToolBar for text fields
         let toolBarText = UIToolbar()
         toolBarText.barStyle = .default
         toolBarText.isTranslucent = true
         toolBarText.tintColor = UIColor(red: 92/255, green: 216/255, blue: 255/255, alpha: 1)
         toolBarText.sizeToFit()
-        
-        
         let doneButton = UIBarButtonItem(title: "Done", style: .plain, target: self, action: #selector(ViewController.doneClick))
         toolBarText.setItems([spaceButton,spaceButton,doneButton], animated: false)
         toolBarText.isUserInteractionEnabled = true
@@ -70,18 +65,16 @@ class ViewController: UIViewController, UITextFieldDelegate,UIPickerViewDelegate
         txtWeight.inputAccessoryView = toolBarText
         txtAge.inputAccessoryView = toolBarText
         txtName.inputAccessoryView = toolBarText
-       }
-       
+    }
+    
+    //MARK: ToolBar actions
     @objc func doneClick() {
         self.view.endEditing(true)
-       }
+    }
     
-    
-       @objc func cancelClick() {
-           txtGender.resignFirstResponder()
-       }
-    
-    
+    @objc func cancelClick() {
+        txtGender.resignFirstResponder()
+    }
     
     //MARK: UIPickerView Delegate & DataSource
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
@@ -101,9 +94,12 @@ class ViewController: UIViewController, UITextFieldDelegate,UIPickerViewDelegate
         txtGender.resignFirstResponder()
     }
     
+    //MARK: Action for tracking screen (to see previous records)
     @IBAction func btnBmiTrackingACt(_ sender: Any) {
         openBMITrackingScreen()
     }
+    
+    //MARK: Action for clear old data and calculate new one
     @IBAction func resetNewBMIAct(_ sender: Any) {
         self.isUpdate = false
         isMetricSwitch.setOn(false, animated: false)
@@ -115,6 +111,7 @@ class ViewController: UIViewController, UITextFieldDelegate,UIPickerViewDelegate
         btnCalculate.setTitle("Calculate BMI", for: .normal)
     }
     
+    //MARK: UISwitch Action for convert metric to imperial OR imperial to metric
     @IBAction func metricConverterSwitch(_ sender: UISwitch) {
         if sender.isOn {
             //If text is already there, convert it to metric
@@ -128,13 +125,12 @@ class ViewController: UIViewController, UITextFieldDelegate,UIPickerViewDelegate
                     txtWeight.text = String(format: "%.2f", weightVal * 0.453592)
                 }
             }
-             if txtHeight.text != nil && !((txtHeight.text!).isEmpty) && txtWeight.text != nil && !((txtWeight.text!).isEmpty) {
+            if txtHeight.text != nil && !((txtHeight.text!).isEmpty) && txtWeight.text != nil && !((txtWeight.text!).isEmpty) {
                 btnCalculateBMIAct(UIButton())
             }
             txtHeight.placeholder = "Height(m)"
             txtWeight.placeholder = "Weight(kg)"
-        }
-        else {
+        } else {
             //If text is already there, convert it to imperial
             if txtHeight.text != nil && !((txtHeight.text!).isEmpty) {
                 if let heightVal = Double(txtHeight.text!) {
@@ -154,8 +150,8 @@ class ViewController: UIViewController, UITextFieldDelegate,UIPickerViewDelegate
         }
     }
     
+    //MARK: Action for Calculate BMI
     @IBAction func btnCalculateBMIAct(_ sender: UIButton) {
-       
         if txtName.text == "" {
             displayAlertWithCompletion(title: "BMICalculator!", message: "Please enter your name.", control: ["Okay"]) { _ in }
         } else if txtAge.text == "" {
@@ -173,14 +169,14 @@ class ViewController: UIViewController, UITextFieldDelegate,UIPickerViewDelegate
             let shortBMI = String(format: "%.2f", BMI)
             var resultText = "Your BMI is \(shortBMI): "
             var descriptor = ""
-            if(BMI < 16.0) { descriptor = "Severely Thin" }
-            else if(BMI < 16.99) { descriptor = "Moderately Thin" }
-            else if(BMI < 18.49) { descriptor = "Slightly Thin" }
+            if(BMI < 16.0) { descriptor = "Severe Thinness" }
+            else if(BMI < 16.99) { descriptor = "Moderate Thinness" }
+            else if(BMI < 18.49) { descriptor = "Mild Thinness" }
             else if(BMI < 24.99) { descriptor = "Normal" }
             else if(BMI < 29.99) { descriptor = "Overweight" }
-            else if(BMI < 34.99) { descriptor = "Moderately Obese" }
-            else if(BMI < 39.99) { descriptor = "Severely Obese" }
-            else { descriptor = "Very Severely Obese" }
+            else if(BMI < 34.99) { descriptor = "Obese Class I" }
+            else if(BMI < 39.99) { descriptor = "Obese Class II" }
+            else { descriptor = "Obese Class III" }
             resultText += descriptor
             print(resultText)
             displayAlertWithCompletion(title: "BMICalculator!", message: resultText, control: ["Okay"]) { str in
@@ -192,6 +188,7 @@ class ViewController: UIViewController, UITextFieldDelegate,UIPickerViewDelegate
         }
     }
     
+    //MARK: Function for Save Calculated BMI values in Persistence storage
     func saveData(shortBMI:String,descriptor:String) {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "MM/dd/yyyy"
@@ -207,10 +204,10 @@ class ViewController: UIViewController, UITextFieldDelegate,UIPickerViewDelegate
     }
     
     
-    //MARK: - open Edit Todo List
+    //MARK: Open Edit Todo List
     func openBMITrackingScreen()  {
         if let vc = UIStoryboard.init(name: "Main", bundle: Bundle.main).instantiateViewController(withIdentifier: "BmiListVC") as? BmiListVC
-         {
+        {
             vc.callbackforUpdateRecord = {
                 (tempArr,bmiDict,indexval,isUpdate) in
                 guard let tempDict = bmiDict else { return  }
@@ -220,9 +217,10 @@ class ViewController: UIViewController, UITextFieldDelegate,UIPickerViewDelegate
                 self.setUpUI(updateBmiDict:tempDict)
             }
             self.navigationController?.pushViewController(vc, animated: true)
-           }
+        }
     }
     
+    //MARK: SetUp UI to update old values
     func setUpUI(updateBmiDict:BMIRecords) {
         isMetricSwitch.setOn(updateBmiDict.isMatric ?? false, animated: false)
         txtHeight.text = updateBmiDict.height ?? ""
